@@ -21,12 +21,14 @@ const UserProfile = () => {
     }
   }, [username])
 
+  // ✅ FIXED useEffect to prevent crash on Follow click
   useEffect(() => {
     if (userProfile && currentUser) {
-      const following = userProfile.user.followers.some(follower => 
-        follower._id === currentUser._id || follower === currentUser._id
-      )
-      setIsFollowing(following)
+      const following = userProfile.user.followers?.some(follower => {
+        const followerId = typeof follower === 'object' ? follower._id : follower
+        return followerId === currentUser._id
+      })
+      setIsFollowing(!!following)
     }
   }, [userProfile, currentUser])
 
@@ -191,8 +193,7 @@ const UserProfile = () => {
               <p className="text-gray-600 dark:text-gray-300 mb-6 max-w-md mx-auto">
                 {isOwnProfile 
                   ? 'Start by adding your first business to the platform.'
-                  : `${user.username} hasn't posted any businesses yet.`
-                }
+                  : `${user.username} hasn't posted any businesses yet.`}
               </p>
               {isOwnProfile && (
                 <Link to="/create-business" className="btn-primary">
@@ -214,27 +215,32 @@ const UserProfile = () => {
                   Followers ({user.followers.length})
                 </h3>
                 <div className="space-y-3">
-                  {user.followers.slice(0, 5).map((follower) => (
-                    <div key={follower._id} className="flex items-center space-x-3">
-                      <div className="w-8 h-8 bg-gradient-to-r from-primary-500 to-blue-500 rounded-full flex items-center justify-center">
-                        {follower.profilePicture ? (
-                          <img
-                            src={follower.profilePicture}
-                            alt={follower.username}
-                            className="w-8 h-8 rounded-full object-cover"
-                          />
-                        ) : (
-                          <User className="h-4 w-4 text-white" />
-                        )}
-                      </div>
-                      <Link
-                        to={`/user/${follower.username}`}
-                        className="text-gray-900 dark:text-gray-100 hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
-                      >
-                        {follower.username}
-                      </Link>
-                    </div>
-                  ))}
+{user.followers?.slice(0, 5).map((follower, idx) => {
+  if (!follower) return null
+  const f = typeof follower === 'object' ? follower : {}
+  return (
+    <div key={f._id || idx} className="flex items-center space-x-3">
+      <div className="w-8 h-8 bg-gradient-to-r from-primary-500 to-blue-500 rounded-full flex items-center justify-center">
+        {f.profilePicture ? (
+          <img
+            src={f.profilePicture}
+            alt={f.username || 'Follower'}
+            className="w-8 h-8 rounded-full object-cover"
+          />
+        ) : (
+          <User className="h-4 w-4 text-white" />
+        )}
+      </div>
+      <Link
+        to={`/user/${f.username || ''}`}
+        className="text-gray-900 dark:text-gray-100 hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
+      >
+        {f.username || 'Unknown'}
+      </Link>
+    </div>
+  )
+})}
+
                   {user.followers.length > 5 && (
                     <p className="text-sm text-gray-500 dark:text-gray-400">
                       +{user.followers.length - 5} more
@@ -251,27 +257,32 @@ const UserProfile = () => {
                   Following ({user.following.length})
                 </h3>
                 <div className="space-y-3">
-                  {user.following.slice(0, 5).map((following) => (
-                    <div key={following._id} className="flex items-center space-x-3">
-                      <div className="w-8 h-8 bg-gradient-to-r from-primary-500 to-blue-500 rounded-full flex items-center justify-center">
-                        {following.profilePicture ? (
-                          <img
-                            src={following.profilePicture}
-                            alt={following.username}
-                            className="w-8 h-8 rounded-full object-cover"
-                          />
-                        ) : (
-                          <User className="h-4 w-4 text-white" />
-                        )}
-                      </div>
-                      <Link
-                        to={`/user/${following.username}`}
-                        className="text-gray-900 dark:text-gray-100 hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
-                      >
-                        {following.username}
-                      </Link>
-                    </div>
-                  ))}
+                  {user.following?.slice(0, 5).map((following, idx) => {
+  if (!following) return null
+  const f = typeof following === 'object' ? following : {}
+  return (
+    <div key={f._id || idx} className="flex items-center space-x-3">
+      <div className="w-8 h-8 bg-gradient-to-r from-primary-500 to-blue-500 rounded-full flex items-center justify-center">
+        {f.profilePicture ? (
+          <img
+            src={f.profilePicture}
+            alt={f.username || 'Following'}
+            className="w-8 h-8 rounded-full object-cover"
+          />
+        ) : (
+          <User className="h-4 w-4 text-white" />
+        )}
+      </div>
+      <Link
+        to={`/user/${f.username || ''}`}
+        className="text-gray-900 dark:text-gray-100 hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
+      >
+        {f.username || 'Unknown'}
+      </Link>
+    </div>
+  )
+})}
+
                   {user.following.length > 5 && (
                     <p className="text-sm text-gray-500 dark:text-gray-400">
                       +{user.following.length - 5} more
