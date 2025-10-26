@@ -11,7 +11,7 @@ cloudinary.config({
 const storage = new CloudinaryStorage({
   cloudinary: cloudinary,
   params: {
-    folder: 'MyLocal', // A folder name in your Cloudinary account
+    folder: 'MyLocal',
     allowed_formats: ['jpeg', 'png', 'jpg'],
   },
 });
